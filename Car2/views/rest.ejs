@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/jquery-1.12.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <style>
+        .towdiv input[type=text]{
+            width: 22%;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">租车系统</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="/cust">客人查询</a></li>
+                <li><a href="/gh">租赁登记</a></li>
+                <li class="active"><a href="/rest">归还登记</a></li>
+                <li><a href="/Sale">统计分析</a></li>
+                <li><a href="/opr">类别档案</a></li>
+                <li><a href="/Prod">汽车档案</a></li>
+                <li><a href="/">退出系统</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="active"><a href="#">管理员：<span class="ospan"><%= yonghuming %></span></a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="container" style="margin:60px auto;width: 80%">
+    <div>
+        <table class="table table-bordered" style="text-align: center">
+            <thead>
+            <tr>
+                <td></td>
+                <td>行号</td>
+                <td>租赁人</td>
+                <td>租赁名称</td>
+                <td>租赁时长</td>
+                <td>每天价格</td>
+                <td>已付押金</td>
+                <td>应付金额</td>
+            </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+    <div class="towdiv">
+        已付押金：
+        <input type="text" name="yajinn"> &nbsp;&nbsp;&nbsp;&nbsp;
+        应付金额：
+        <input type="text" name="yingfu"> &nbsp;&nbsp;&nbsp;&nbsp;
+        找零金额：
+        <input type="text" name="zhaoling">
+    </div>
+    <br>
+    <div class="Btn">
+        <p style="float: right">
+            <button id="queding">确定</button>
+            <button id="tuichu">关闭(E)</button>
+        </p>
+    </div>
+</div>
+
+<script>
+    $.get("/readrest",function (data) {
+        var num = 1;
+        $("#tbody").html(' ')
+        $.each(data.s, function (i, n) {
+            $tr = $("<tr></tr>");
+            $("<td></td>").html('<input type="radio" data-id="' + n._id + '" name="radio" class="ipt">').appendTo($tr);
+            $("<td></td>").html("0000" + num++).appendTo($tr);
+            $("<td></td>").html(n.kehu).appendTo($tr);
+            $("<td></td>").html(n.qichemingcheng).appendTo($tr);
+            $("<td></td>").html(n.shichang).appendTo($tr);
+            $("<td></td>").html(n.dayzujin).appendTo($tr);
+            $("<td></td>").html(n.yajin).appendTo($tr);
+            $("<td></td>").html(n.zhifu-n.yajin).appendTo($tr);
+            $tr.appendTo($("#tbody"));
+        })
+    })
+    // 退出
+    $('#tuichu').click(function () {
+        window.location="/menu"
+    })
+    $("#tbody").delegate(".ipt","change",function () {
+        $("input[name=yajinn]").val($(this).parent().parent().children('td').eq(6).html())
+        $("input[name=yingfu]").val($(this).parent().parent().children('td').eq(7).html())
+        $("input[name=zhaoling]").val($(this).parent().parent().children('td').eq(6).html())
+    })
+    $('#queding').click(function () {
+        $.post("/restAdd",{
+            "shichang":$('input[name=radio]:checked').parent().parent().children('td').eq(4).html(),
+            "dayzujin":$('input[name=radio]:checked').parent().parent().children('td').eq(5).html(),
+            "kehu":$('input[name=radio]:checked').parent().parent().children('td').eq(2).html(),
+            "qichemingcheng":$('input[name=radio]:checked').parent().parent().children('td').eq(3).html(),
+            "yajin":$('input[name=radio]:checked').parent().parent().children('td').eq(6).html(),
+            "guanliyuan": $('.ospan').html()
+        },function (data) {
+            if (data.s==1){
+                alert("归还成功");
+                var id = $("input[name=radio]:checked").attr("data-id");
+                var str=$('input[name=radio]:checked').parent().parent().children('td').eq(3).html();
+                $.get("/updateguihuan/"+id,function(){
+
+                });
+                $.get("/updateguihuans/"+str,function () {
+
+                })
+                window.location.href="/rest"
+            }
+            if (data.s==-1){
+                alert("失败")
+            }
+        })
+    })
+</script>
+</body>
+</html>

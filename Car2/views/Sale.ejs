@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/jquery-1.12.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/echarts.min.js"></script>
+    <style>
+        .odiv p {
+            width: 100%;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+        }
+
+        .odiv p a {
+            color: #000;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">租车系统</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="/cust">客人查询</a></li>
+                <li><a href="/gh">租赁登记</a></li>
+                <li><a href="/rest">归还登记</a></li>
+                <li class="active"><a href="/Sale">统计分析</a></li>
+                <li><a href="/opr">类别档案</a></li>
+                <li><a href="/Prod">汽车档案</a></li>
+                <li><a href="/">退出系统</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li class="active"><a href="#">管理员：<%= yonghuming %></a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div style="width: 80%;margin: 60px auto;">
+    <div style="width: 10%;border:1px solid #000;float: left" class="odiv">
+        <p class="p1"><a href="#">租出统计</a></p>
+        <p class="p2"><a href="#">归还统计</a></p>
+    </div>
+    <div style="width: 68%;float: left;margin-left: 2%">
+        <table class="table table-bordered" style="text-align: center">
+            <thead>
+            <tr>
+                <td>行号</td>
+                <td>租赁名称</td>
+                <td>租赁人</td>
+                <td>租赁时长</td>
+                <td>每天租金</td>
+                <td>合计金额</td>
+                <td>租赁日期</td>
+                <td>操作员</td>
+            </tr>
+            </thead>
+            <tbody id="tbody1"></tbody>
+            <tbody id="tbody2"></tbody>
+        </table>
+    </div>
+    <div id="main" style="width: 80%;height:400px;clear: both"></div>
+</div>
+<script>
+    $.get("/readSale", function (data) {
+        $("#tbody").html(' ')
+        var num = 1;
+        $.each(data.s, function (i, n) {
+            $tr = $("<tr></tr>");
+            $("<td></td>").html("0000" + num++).appendTo($tr);
+            $("<td></td>").html(n.kehu).appendTo($tr);
+            $("<td></td>").html(n.qichemingcheng).appendTo($tr);
+            $("<td></td>").html(n.shichang).appendTo($tr);
+            $("<td></td>").html(n.dayzujin).appendTo($tr);
+            $("<td></td>").html(n.zong).appendTo($tr);
+            $("<td></td>").html(n.date).appendTo($tr);
+            $("<td></td>").html(n.guanliyuan).appendTo($tr);
+            $tr.appendTo($("#tbody1"));
+        })
+    })
+    $.get("/readSales", function (data) {
+        $("#tbody").html(' ')
+        var num = 1;
+        $.each(data.s, function (i, n) {
+            $tr = $("<tr></tr>");
+            $("<td></td>").html("0000" + num++).appendTo($tr);
+            $("<td></td>").html(n.kehu).appendTo($tr);
+            $("<td></td>").html(n.qichemingcheng).appendTo($tr);
+            $("<td></td>").html(n.shichang).appendTo($tr);
+            $("<td></td>").html(n.dayzujin).appendTo($tr);
+            $("<td></td>").html(n.shichang * n.dayzujin).appendTo($tr);
+            $("<td></td>").html(n.date).appendTo($tr);
+            $("<td></td>").html(n.guanliyuan).appendTo($tr);
+            $tr.appendTo($("#tbody2"));
+        })
+    })
+    $("#tbody2").hide();
+    $('.p1').click(function () {
+        $("#tbody2").hide();
+        $("#tbody1").show();
+    })
+    $('.p2').click(function () {
+        $("#tbody1").hide();
+        $("#tbody2").show();
+    })
+    window.arr=[];
+    $.ajax({
+        "type" : "get",
+        "url":"/readChu",
+        "async" : false,
+        success:function (data) {
+            for (var i = 0; i <data.s.length ; i++) {
+                for (var j = 0; j < data.s[i].qichemingcheng.length; j++) {
+                    if (arr.indexOf(data.s[i].qichemingcheng) == -1) {
+                        arr.push(data.s[i].qichemingcheng)
+                    }
+                }
+            }
+        }
+    })
+    $.ajax({
+        "type" : "get",
+        "url":"/readHuan",
+        "async" : false,
+        success:function (data) {
+            for (var i = 0; i <data.s.length ; i++) {
+                for (var j = 0; j < data.s[i].qichemingcheng.length; j++) {
+                    if (arr.indexOf(data.s[i].qichemingcheng) == -1) {
+                        arr.push(data.s[i].qichemingcheng)
+                    }
+                }
+            }
+        }
+    })
+    var myChart = echarts.init(document.getElementById('main'));
+    option = {
+        title: {
+            text: '出租与归还统计分析',
+            subtext: '数据'
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow'
+            }
+        },
+        legend: {
+            data: ['出租', '归还']
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis: {
+            type: 'value',
+            boundaryGap: [0, 0.0001]
+        },
+        yAxis: {
+            type: 'category',
+            data: arr,
+        },
+        series: [
+            {
+                name: '出租',
+                type: 'bar',
+                data: [2, 1, 2, 3, 2, 1,2,2]
+            },
+            {
+                name: '归还',
+                type: 'bar',
+                data: [2, 1,9]
+            }
+        ]
+    };
+
+    myChart.setOption(option);
+</script>
+</body>
+</html>
